@@ -24,7 +24,7 @@ export const App: React.FC = () => {
   const [titleTodo, setTitleTodo] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
-  const [editingTodos, setEditingTodos] = useState<Record<number, boolean>>({});
+  const [isEditingTodos, setIsEditingTodos] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -95,7 +95,8 @@ export const App: React.FC = () => {
 
           return newTodo;
         });
-        setEditingTodos(prev => ({ ...prev, [updatedTodo.id]: false }));
+
+        setIsEditingTodos(true);
       })
       .catch(() => {
         setErrorMessage('Unable to update a todo');
@@ -103,6 +104,7 @@ export const App: React.FC = () => {
       .finally(() => {
         setLoadingTodoIds(ids => ids.filter(id => id !== updatedTodo.id));
         setTitleTodo('');
+        setIsEditingTodos(false);
       });
   };
 
@@ -168,13 +170,13 @@ export const App: React.FC = () => {
 
         <TodoList
           todos={getFilteredTodos}
-          updateTodo={updateTodo}
           deleteTodo={deleteTodo}
           isLoading={isLoading}
-          loadingTodoIds={loadingTodoIds}
           tempTodo={tempTodo}
-          editingTodos={editingTodos}
-          setEditingTodos={setEditingTodos}
+          isEditingTodos={isEditingTodos}
+          setErrorMessage={setErrorMessage}
+          loadingTodoIds={loadingTodoIds}
+          setLoadingTodoIds={setLoadingTodoIds}
         />
 
         {!!todos.length && (

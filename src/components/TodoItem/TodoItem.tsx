@@ -2,39 +2,49 @@ import React, { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 
 import { Todo } from '../../types/Todo';
+import { updateTodo } from '../../api/todos';
 
 type Props = {
   todo: Todo;
-  updateTodo: (updatedTodo: Todo) => void;
   deleteTodo: (todoId: number) => void;
   isLoading: boolean;
-  editingTodos: Record<number, boolean>;
-  setEditingTodos: React.Dispatch<
-    React.SetStateAction<Record<number, boolean>>
-  >;
+  isEditingTodos: boolean;
+  setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  loadingTodoIds: number[];
+  setLoadingTodoIds: React.Dispatch<React.SetStateAction<number[]>>;
+  tempTodo: Todo | null;
 };
 
 export const TodoItem: React.FC<Props> = ({
   todo,
-  updateTodo,
   deleteTodo,
   isLoading,
-  editingTodos,
-  setEditingTodos,
+  isEditingTodos,
+  setErrorMessage,
+  loadingTodoIds,
+  setLoadingTodoIds,
+  tempTodo,
 }) => {
   const { title, completed, id } = todo;
 
   const [editedTitle, setEditedTitle] = useState(title);
+  const [editingTodos, setEditingTodos] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (editingTodos[id] && inputRef.current) {
+    if (editingTodos && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [editingTodos, id]);
+  }, [editingTodos]);
+
+  useEffect(() => {
+    if (isEditingTodos) {
+      setEditingTodos(false);
+    }
+  }, [isEditingTodos]);
 
   const handleDoubleClick = () => {
-    setEditingTodos(prev => ({ ...prev, [id]: true }));
+    setEditingTodos(true);
   };
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,29 +54,39 @@ export const TodoItem: React.FC<Props> = ({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
+    setLoadingTodoIds(ids => [...ids, todo.id]);
     const trimmedTitle = editedTitle.trim();
 
-    if (trimmedTitle) {
-      if (trimmedTitle !== title) {
-        updateTodo({ ...todo, title: trimmedTitle });
-      }
-    } else {
+    if (!trimmedTitle) {
       deleteTodo(id);
+    } else if (trimmedTitle !== title) {
+      updateTodo({ ...todo, title: trimmedTitle })
+        .then(() => {
+          setEditedTitle(trimmedTitle);
+          setEditingTodos(false);
+        })
+        .catch(() => {
+          setErrorMessage('Unable to update a todo');
+        })
+        .finally(() =>
+          setLoadingTodoIds(ids => ids.filter(id => id !== todo.id)),
+        );
+    } else {
+      setEditingTodos(false);
     }
-    setEditingTodos(prev => ({ ...prev, [id]: false }));
   };
 
   const handleKeyUp = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setEditedTitle(title);
-      setEditingTodos(prev => ({ ...prev, [id]: false }));
+      setEditingTodos(false);
     }
 
     if (event.key === 'Enter') {
       const trimmedTitle = editedTitle.trim();
 
       if (trimmedTitle === title) {
-        setEditingTodos(prev => ({ ...prev, [id]: false }));
+        setEditingTodos(false);
       } else {
         handleSubmit(event);
       }
@@ -89,7 +109,7 @@ export const TodoItem: React.FC<Props> = ({
         />
       </label>
 
-      {editingTodos[id] ? (
+      {editingTodos ? (
         <form onSubmit={handleSubmit}>
           <input
             data-cy="TodoTitleField"
@@ -127,7 +147,7 @@ export const TodoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isLoading,
+          'is-active': isLoading || editingTodos,
         })}
       >
         <div className="modal-background has-background-white-ter" />

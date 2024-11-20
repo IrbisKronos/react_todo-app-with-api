@@ -5,26 +5,24 @@ import { TodoItem } from '../TodoItem';
 
 type Props = {
   todos: Todo[] | null;
-  updateTodo: (updatedTodo: Todo) => void;
   deleteTodo: (todoId: number) => void;
   isLoading: boolean;
-  loadingTodoIds: number[];
   tempTodo: Todo | null;
-  editingTodos: Record<number, boolean>;
-  setEditingTodos: React.Dispatch<
-    React.SetStateAction<Record<number, boolean>>
-  >;
+  isEditingTodos: boolean;
+  setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  loadingTodoIds: number[];
+  setLoadingTodoIds: React.Dispatch<React.SetStateAction<number[]>>;
 };
 
 export const TodoList: React.FC<Props> = ({
   todos,
-  updateTodo,
   deleteTodo,
   isLoading,
-  loadingTodoIds,
   tempTodo,
-  editingTodos,
-  setEditingTodos,
+  isEditingTodos,
+  setErrorMessage,
+  loadingTodoIds,
+  setLoadingTodoIds,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -32,22 +30,26 @@ export const TodoList: React.FC<Props> = ({
         todos.map((todo: Todo) => (
           <TodoItem
             todo={todo}
-            updateTodo={updateTodo}
             deleteTodo={deleteTodo}
             isLoading={loadingTodoIds.includes(todo.id)}
             key={todo.id}
-            editingTodos={editingTodos}
-            setEditingTodos={setEditingTodos}
+            isEditingTodos={isEditingTodos}
+            setErrorMessage={setErrorMessage}
+            loadingTodoIds={loadingTodoIds}
+            setLoadingTodoIds={setLoadingTodoIds}
+            tempTodo={tempTodo}
           />
         ))}
       {tempTodo && (
         <TodoItem
           todo={tempTodo}
-          updateTodo={updateTodo}
+          tempTodo={tempTodo}
           deleteTodo={deleteTodo}
           isLoading={true}
-          editingTodos={editingTodos}
-          setEditingTodos={setEditingTodos}
+          isEditingTodos={isEditingTodos}
+          setErrorMessage={setErrorMessage}
+          loadingTodoIds={loadingTodoIds}
+          setLoadingTodoIds={setLoadingTodoIds}
         />
       )}
     </section>
