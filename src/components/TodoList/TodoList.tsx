@@ -10,6 +10,10 @@ type Props = {
   isLoading: boolean;
   loadingTodoIds: number[];
   tempTodo: Todo | null;
+  editingTodos: Record<number, boolean>;
+  setEditingTodos: React.Dispatch<
+    React.SetStateAction<Record<number, boolean>>
+  >;
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -19,6 +23,8 @@ export const TodoList: React.FC<Props> = ({
   isLoading,
   loadingTodoIds,
   tempTodo,
+  editingTodos,
+  setEditingTodos,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -30,6 +36,8 @@ export const TodoList: React.FC<Props> = ({
             deleteTodo={deleteTodo}
             isLoading={loadingTodoIds.includes(todo.id)}
             key={todo.id}
+            editingTodos={editingTodos}
+            setEditingTodos={setEditingTodos}
           />
         ))}
       {tempTodo && (
@@ -38,6 +46,8 @@ export const TodoList: React.FC<Props> = ({
           updateTodo={updateTodo}
           deleteTodo={deleteTodo}
           isLoading={true}
+          editingTodos={editingTodos}
+          setEditingTodos={setEditingTodos}
         />
       )}
     </section>

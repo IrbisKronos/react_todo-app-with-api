@@ -8,6 +8,10 @@ type Props = {
   updateTodo: (updatedTodo: Todo) => void;
   deleteTodo: (todoId: number) => void;
   isLoading: boolean;
+  editingTodos: Record<number, boolean>;
+  setEditingTodos: React.Dispatch<
+    React.SetStateAction<Record<number, boolean>>
+  >;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -15,21 +19,22 @@ export const TodoItem: React.FC<Props> = ({
   updateTodo,
   deleteTodo,
   isLoading,
+  editingTodos,
+  setEditingTodos,
 }) => {
   const { title, completed, id } = todo;
 
-  const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
+    if (editingTodos[id] && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isEditing]);
+  }, [editingTodos, id]);
 
   const handleDoubleClick = () => {
-    setIsEditing(true);
+    setEditingTodos(prev => ({ ...prev, [id]: true }));
   };
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,14 +53,23 @@ export const TodoItem: React.FC<Props> = ({
     } else {
       deleteTodo(id);
     }
-
-    setIsEditing(false);
+    setEditingTodos(prev => ({ ...prev, [id]: false }));
   };
 
   const handleKeyUp = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setEditedTitle(title);
-      setIsEditing(false);
+      setEditingTodos(prev => ({ ...prev, [id]: false }));
+    }
+
+    if (event.key === 'Enter') {
+      const trimmedTitle = editedTitle.trim();
+
+      if (trimmedTitle === title) {
+        setEditingTodos(prev => ({ ...prev, [id]: false }));
+      } else {
+        handleSubmit(event);
+      }
     }
   };
 
@@ -75,7 +89,7 @@ export const TodoItem: React.FC<Props> = ({
         />
       </label>
 
-      {isEditing ? (
+      {editingTodos[id] ? (
         <form onSubmit={handleSubmit}>
           <input
             data-cy="TodoTitleField"
