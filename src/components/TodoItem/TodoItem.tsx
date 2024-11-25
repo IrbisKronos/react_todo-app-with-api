@@ -13,6 +13,7 @@ type Props = {
   loadingTodoIds: number[];
   setLoadingTodoIds: React.Dispatch<React.SetStateAction<number[]>>;
   tempTodo: Todo | null;
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -24,11 +25,14 @@ export const TodoItem: React.FC<Props> = ({
   loadingTodoIds,
   setLoadingTodoIds,
   tempTodo,
+  setTodos,
 }) => {
   const { title, completed, id } = todo;
 
   const [editedTitle, setEditedTitle] = useState(title);
   const [editingTodos, setEditingTodos] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -54,12 +58,21 @@ export const TodoItem: React.FC<Props> = ({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    setLoadingTodoIds(ids => [...ids, todo.id]);
+    if (isSubmitting) {
+      return;
+    }
+    setIsSubmitting(true);
+
+    setLoadingTodoIds(ids => [...ids, id]);
     const trimmedTitle = editedTitle.trim();
 
     if (!trimmedTitle) {
       deleteTodo(id);
-    } else if (trimmedTitle !== title) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (trimmedTitle !== title) {
       updateTodo({ ...todo, title: trimmedTitle })
         .then(() => {
           setEditedTitle(trimmedTitle);
@@ -68,11 +81,14 @@ export const TodoItem: React.FC<Props> = ({
         .catch(() => {
           setErrorMessage('Unable to update a todo');
         })
-        .finally(() =>
-          setLoadingTodoIds(ids => ids.filter(id => id !== todo.id)),
-        );
+        .finally(() => {
+          setLoadingTodoIds(ids => ids.filter(todoId => todoId !== id));
+          setIsSubmitting(false);
+        });
     } else {
       setEditingTodos(false);
+      setLoadingTodoIds(ids => ids.filter(todoId => todoId !== id));
+      setIsSubmitting(false);
     }
   };
 
@@ -93,6 +109,23 @@ export const TodoItem: React.FC<Props> = ({
     }
   };
 
+  const toggleTodoStatus = (todo: Todo) => {
+    setLoadingTodoIds(ids => [...ids, todo.id]);
+
+    updateTodo({ ...todo, completed: !todo.completed })
+      .then(updatedTodo => {
+        setTodos(currentTodos =>
+          currentTodos.map(t => (t.id === updatedTodo.id ? updatedTodo : t)),
+        );
+      })
+      .catch(() => {
+        setErrorMessage('Unable to update a todo');
+      })
+      .finally(() => {
+        setLoadingTodoIds(ids => ids.filter(id => id !== todo.id));
+      });
+  };
+
   return (
     <div
       data-cy="Todo"
@@ -104,7 +137,7 @@ export const TodoItem: React.FC<Props> = ({
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          onClick={() => updateTodo({ ...todo, completed: !completed })}
+          onClick={() => toggleTodoStatus(todo)}
           checked={completed}
         />
       </label>
@@ -147,7 +180,7 @@ export const TodoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isLoading || editingTodos || loadingTodoIds.includes(id),
+          'is-active': isLoading || editingTodos,
         })}
       >
         <div className="modal-background has-background-white-ter" />

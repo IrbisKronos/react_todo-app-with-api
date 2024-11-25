@@ -171,12 +171,12 @@ export const App: React.FC = () => {
         <TodoList
           todos={getFilteredTodos}
           deleteTodo={deleteTodo}
-          isLoading={isLoading}
           tempTodo={tempTodo}
           isEditingTodos={isEditingTodos}
           setErrorMessage={setErrorMessage}
           loadingTodoIds={loadingTodoIds}
           setLoadingTodoIds={setLoadingTodoIds}
+          setTodos={setTodos}
         />
 
         {!!todos.length && (

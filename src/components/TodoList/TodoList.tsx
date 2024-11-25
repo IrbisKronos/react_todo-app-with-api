@@ -6,23 +6,23 @@ import { TodoItem } from '../TodoItem';
 type Props = {
   todos: Todo[] | null;
   deleteTodo: (todoId: number) => void;
-  isLoading: boolean;
   tempTodo: Todo | null;
   isEditingTodos: boolean;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   loadingTodoIds: number[];
   setLoadingTodoIds: React.Dispatch<React.SetStateAction<number[]>>;
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
 export const TodoList: React.FC<Props> = ({
   todos,
   deleteTodo,
-  isLoading,
   tempTodo,
   isEditingTodos,
   setErrorMessage,
   loadingTodoIds,
   setLoadingTodoIds,
+  setTodos,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -38,6 +38,7 @@ export const TodoList: React.FC<Props> = ({
             loadingTodoIds={loadingTodoIds}
             setLoadingTodoIds={setLoadingTodoIds}
             tempTodo={tempTodo}
+            setTodos={setTodos}
           />
         ))}
       {tempTodo && (
@@ -50,6 +51,7 @@ export const TodoList: React.FC<Props> = ({
           setErrorMessage={setErrorMessage}
           loadingTodoIds={loadingTodoIds}
           setLoadingTodoIds={setLoadingTodoIds}
+          setTodos={setTodos}
         />
       )}
     </section>
