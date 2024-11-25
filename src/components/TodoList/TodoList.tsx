@@ -35,21 +35,17 @@ export const TodoList: React.FC<Props> = ({
             key={todo.id}
             isEditingTodos={isEditingTodos}
             setErrorMessage={setErrorMessage}
-            loadingTodoIds={loadingTodoIds}
             setLoadingTodoIds={setLoadingTodoIds}
-            tempTodo={tempTodo}
             setTodos={setTodos}
           />
         ))}
       {tempTodo && (
         <TodoItem
           todo={tempTodo}
-          tempTodo={tempTodo}
           deleteTodo={deleteTodo}
           isLoading={true}
           isEditingTodos={isEditingTodos}
           setErrorMessage={setErrorMessage}
-          loadingTodoIds={loadingTodoIds}
           setLoadingTodoIds={setLoadingTodoIds}
           setTodos={setTodos}
         />

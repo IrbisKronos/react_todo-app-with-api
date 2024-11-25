@@ -10,9 +10,7 @@ type Props = {
   isLoading: boolean;
   isEditingTodos: boolean;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-  loadingTodoIds: number[];
   setLoadingTodoIds: React.Dispatch<React.SetStateAction<number[]>>;
-  tempTodo: Todo | null;
   setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
 };
 
@@ -22,9 +20,7 @@ export const TodoItem: React.FC<Props> = ({
   isLoading,
   isEditingTodos,
   setErrorMessage,
-  loadingTodoIds,
   setLoadingTodoIds,
-  tempTodo,
   setTodos,
 }) => {
   const { title, completed, id } = todo;
@@ -80,6 +76,7 @@ export const TodoItem: React.FC<Props> = ({
         })
         .catch(() => {
           setErrorMessage('Unable to update a todo');
+          setEditingTodos(false);
         })
         .finally(() => {
           setLoadingTodoIds(ids => ids.filter(todoId => todoId !== id));
@@ -96,16 +93,7 @@ export const TodoItem: React.FC<Props> = ({
     if (event.key === 'Escape') {
       setEditedTitle(title);
       setEditingTodos(false);
-    }
-
-    if (event.key === 'Enter') {
-      const trimmedTitle = editedTitle.trim();
-
-      if (trimmedTitle === title) {
-        setEditingTodos(false);
-      } else {
-        handleSubmit(event);
-      }
+      setLoadingTodoIds(ids => ids.filter(todoId => todoId !== id));
     }
   };
 
@@ -163,7 +151,7 @@ export const TodoItem: React.FC<Props> = ({
             className="todo__title"
             onDoubleClick={handleDoubleClick}
           >
-            {title}
+            {editedTitle}
           </span>
 
           <button
@@ -180,7 +168,7 @@ export const TodoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isLoading || editingTodos,
+          'is-active': isLoading || (editingTodos && isSubmitting),
         })}
       >
         <div className="modal-background has-background-white-ter" />
